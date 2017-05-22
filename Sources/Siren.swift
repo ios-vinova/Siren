@@ -37,6 +37,8 @@ public final class Siren: NSObject {
     /// When enabled, a stream of println() statements are logged to your console when a version check is performed.
     public lazy var debugEnabled = false
 
+    public lazy var customBundleId = ""
+    
     /// Determines the type of alert that should be shown.
     /// See the Siren.AlertType enum for full details.
     public var alertType = AlertType.option {
@@ -113,7 +115,7 @@ public final class Siren: NSObject {
     /// - Parameters:
     ///   - checkType: The frequency in days in which you want a check to be performed. Please refer to the Siren.VersionCheckType enum for more details.
     public func checkVersion(checkType: VersionCheckType) {
-        guard let _ = Bundle.bundleID() else {
+        guard let _ = self.appBundleId() else {
             printMessage(message: "Please make sure that you have set a `Bundle Identifier` in your project.")
             return
         }
@@ -132,6 +134,16 @@ public final class Siren: NSObject {
                 postError(.recentlyCheckedAlready, underlyingError: nil)
             }
         }
+    }
+    
+    func appBundleId() -> String? {
+        if customBundleId.length > 0 {
+           return customBundleId
+        }
+        if let bundle = Bundle.bundleID() {
+            return bundle
+        }
+        return nil
     }
 }
 
@@ -241,7 +253,7 @@ private extension Siren {
         components.host = "itunes.apple.com"
         components.path = "/lookup"
 
-        var items: [URLQueryItem] = [URLQueryItem(name: "bundleId", value: Bundle.bundleID())]
+        var items: [URLQueryItem] = [URLQueryItem(name: "bundleId", value: self.appBundleId())]
 
         if let countryCode = countryCode {
             let item = URLQueryItem(name: "country", value: countryCode)
